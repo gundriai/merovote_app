@@ -1,0 +1,143 @@
+{
+  "welcome": "मेरोभोटमा स्वागत छ",
+  "vote": "मत",
+  "comparison_voting": "तुलना मतदान",
+  "comment": "टिप्पणी",
+  "voting_ends_in": "मतदान समाप्त हुन",
+  "choose_favorite": "आफ्नो मनपर्नो छान्नुहोस्",
+  "thank_you_voting": "यस पोलमा सहभागिता जनाउनुभएकोमा धन्यवाद!",
+  "active": "सक्रिय",
+  "login_success": "सफलतापूर्वक लगइन भयो!",
+  "login_failed": "लगइन असफल। कृपया फेरि प्रयास गर्नुहोस्।",
+  "show_comments": "टिप्पणी देखाउनुहोस्",
+  "hide_comments": "टिप्पणी लुकाउनुहोस्",
+  "success": "सफलता",
+  "already_voted": "तपाईंले यस पोलमा पहिले नै मत दिनुभएको छ",
+  "poll_ended": "यो पोल समाप्त भएको छ",
+  "select_language": "भाषा चयन गर्नुहोस्",
+  "days_left": "{{count}} दिन बाँकी",
+  "days_left_plural": "{{count}} दिन बाँकी",
+  "hours_left": "{{count}} घण्टा बाँकी",
+  "hours_left_plural": "{{count}} घण्टा बाँकी",
+  "minutes_left": "{{count}} मिनेट बाँकी",
+  "minutes_left_plural": "{{count}} मिनेट बाँकी",
+  "vote_success": "तपाईंको मत सफलतापूर्वक दर्ता भयो!",
+  "info": "जानकारी",
+  
+  "not_found": {
+    "title": "पृष्ठ भेटिएन",
+    "message": "तपाईंले खोज्नुभएको पृष्ठ भेटिएन।"
+  },
+  "voting": {
+    "auth_required_title": "प्रमाणीकरण आवश्यक",
+    "auth_required_message": "मत दिनका लागि तपाईंले लग इन गर्नुपर्छ",
+    "types": {
+      "reaction_based": "प्रतिक्रिया-आधारित",
+      "one_vs_one": "एक बिरुद्ध एक",
+      "default": "मतदान"
+    },
+    "ratings": {
+      "excellent": "उत्कृष्ट",
+      "good": "राम्रो",
+      "average": "औसत",
+      "poor": "खराब",
+      "gajjab": "गजब",
+      "bekar": "बेकार",
+      "furious": "यस्तो नी हुन्छ गथे"
+    },
+    "errors": {
+      "title": "त्रुटि",
+      "vote_failed": "मत दिन असफल",
+      "already_voted": "तपाईंले यो पोलमा पहिले नै मत दिनुभएको छ",
+      "poll_not_active": "यो पोल अहिले सक्रिय छैन",
+      "poll_option_not_found": "पोल विकल्प फेला परेन",
+      "user_not_logged_in": "मत दिनका लागि तपाईंले लग इन गर्नुपर्छ",
+      "poll_not_found": "पोल फेला परेन",
+      "voting_ended": "यो पोलको मतदान समाप्त भएको छ"
+    },
+    "ended": "समाप्त",
+    "voted": "मत दिइयो",
+    "days_remaining": "{{count}} दिन बाँकी",
+    "hours_remaining": "{{count}} घण्टा बाँकी",
+    "minutes_remaining": "{{count}} मिनेट बाँकी"
+  },
+  "comments": {
+    "title": "टिप्पणीहरू",
+    "empty": "अहिले सम्म कुनै टिप्पणी छैन",
+    "loading": "लोड गर्दै...",
+    "placeholders": {
+      "name": "तपाईंको नाम",
+      "comment": "आफ्नो टिप्पणी लेख्नुहोस्...",
+      "comment_with_limit": "तपाईंको टिप्पणी (२० शब्द मात्र)"
+    },
+    "actions": {
+      "post_comment": "टिप्पणी पोस्ट गर्नुहोस्",
+      "react": "प्रतिक्रिया दिनुहोस्"
+    },
+    "errors": {
+      "fill_fields": "कृपया टिप्पणी र नाम दुवै भर्नुहोस्",
+      "word_limit": "टिप्पणी २० शब्द भन्दा बढी हुन सक्दैन"
+    },
+    "success": {
+      "comment_posted": "तपाईंको टिप्पणी पोस्ट भयो",
+      "reaction_added": "प्रतिक्रिया दिइयो"
+    },
+    "word_count": "शब्द गणना"
+  },
+  "time": {
+    "just_now": "अहिले",
+    "minutes_ago": "{{count}} मिनेट अगाडि",
+    "hours_ago": "{{count}} घण्टा अगाडि",
+    "days_ago": "{{count}} दिन अगाडि"
+  },
+  "error": "त्रुटि",
+  "success": "सफलता",
+  "loading": "लोड गर्दै...",
+  
+  "home": {
+    "title": "मेरोभोट",
+    "subtitle": "नेपालको पहिलो सुरक्षित गुणस्तर मतदान प्लेटफर्म। तपाईंको राय दिनुहोस्, गुणस्तर रहनुहोस्।",
+    "vote_button": "नेपाली पोलकर्म",
+    "secure_badge": "१००% सुरक्षित",
+    "quality_voting": "गुणस्तर मतदान",
+    "stats": {
+      "total_votes": "कुल मतदान",
+      "active_voters": "सक्रिय मतदाता",
+      "poll_types": "मतदान प्रकार"
+    },
+    "categories": {
+      "all": "सबै",
+      "face_to_face": "आमने सामने",
+      "daily": "दैनिक",
+      "political": "राजनैतिक"
+    },
+    "loading": "पोलहरू लोड गर्दै...",
+    "no_polls": "कुनै पोल भेटिएन",
+    "error_loading_polls": "पोलहरू लोड गर्नमा त्रुटि",
+    "retry": "पुनः प्रयास गर्नुहोस्",
+    "vote_failed": "मत दिन असफल"
+  },
+  
+  "header": {
+    "app_name": "मेरोभोट",
+    "nav": {
+      "home": "होम",
+      "admin": "एडमिन",
+      "login": "प्रवेश गर्नुहोस्"
+    },
+    "status": {
+      "secure": "सुरक्षित",
+      "verified": "सत्यापित"
+    }
+  },
+  
+  "admin": {
+    "dashboard": "ड्यासबोर्ड",
+    "stats": {
+      "total_votes": "कुल मत",
+      "total_polls": "कुल पोलहरू",
+      "active_polls": "सक्रिय पोस्ट",
+      "total_comments": "कुल टिप्पणी"
+    }
+  }
+}

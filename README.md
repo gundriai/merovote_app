@@ -95,7 +95,7 @@ npm run web
 Create a `.env` file in the root directory:
 
 ```env
-EXPO_PUBLIC_API_URL=http://localhost:3300
+EXPO_PUBLIC_API_URL=https://txmr1pcp-3300.inc1.devtunnels.ms
 EXPO_PUBLIC_APP_NAME=MeroVote
 EXPO_PUBLIC_APP_VERSION=1.0.0
 EXPO_PUBLIC_ENABLE_ANALYTICS=false

@@ -7,6 +7,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { AggregatedPoll, Candidate } from '../types';
 import { apiService } from '../services/api';
 import { showAlert, hapticFeedback, formatTimeRemaining } from '../utils/mobile';
@@ -18,28 +19,40 @@ interface ComparisonCardProps {
 const getCandidateColor = (index: number) => {
   const colors = [
     { 
-      bg: '#3b82f6', 
-      border: '#2563eb', 
-      text: '#1e40af', 
-      progress: '#3b82f6',
+      bg: '#e0f2fe', 
+      border: '#bae6fd', 
+      text: '#0369a1', 
+      progress: '#7dd3fc', // Light blue
     },
     { 
-      bg: '#10b981', 
-      border: '#059669', 
+      bg: '#f0fdf4', 
+      border: '#bbf7d0', 
+      text: '#166534', 
+      progress: '#86efac', // Light green
+    },
+    { 
+      bg: '#fef3c7', 
+      border: '#fde68a', 
+      text: '#92400e', 
+      progress: '#fcd34d', // Light amber
+    },
+    { 
+      bg: '#f3e8ff', 
+      border: '#e9d5ff', 
+      text: '#7c2d12', 
+      progress: '#c4b5fd', // Light purple
+    },
+    { 
+      bg: '#fce7f3', 
+      border: '#fbcfe8', 
+      text: '#be185d', 
+      progress: '#f9a8d4', // Light pink
+    },
+    { 
+      bg: '#ecfdf5', 
+      border: '#d1fae5', 
       text: '#065f46', 
-      progress: '#10b981',
-    },
-    { 
-      bg: '#f97316', 
-      border: '#ea580c', 
-      text: '#c2410c', 
-      progress: '#f97316',
-    },
-    { 
-      bg: '#8b5cf6', 
-      border: '#7c3aed', 
-      text: '#6b21a8', 
-      progress: '#8b5cf6',
+      progress: '#6ee7b7', // Light teal
     },
   ];
   return colors[index % colors.length];
@@ -85,17 +98,19 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
       hapticFeedback.success();
       showAlert('Success', 'Your vote has been recorded successfully!', 'success');
     } catch (error) {
-      console.error('Error voting:', error);
-      hapticFeedback.error();
-      
-      // Check if it's an authentication error
-      if (error instanceof Error && error.message.includes('401')) {
+      // Check if it's an authentication error first
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication required'))) {
+        // Don't log 401 errors to console as they're expected for unauthenticated users
+        hapticFeedback.warning();
         showAlert('Login Required', 'Please login to cast your vote', 'warning');
-        // Navigate to login screen
+        // Navigate to login screen immediately
         setTimeout(() => {
           router.push('/login');
         }, 1500);
       } else {
+        // Log other errors and show error message
+        console.error('Error voting:', error);
+        hapticFeedback.error();
         showAlert('Error', 'Failed to cast vote. Please try again.', 'error');
       }
     }
@@ -119,7 +134,9 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
   };
 
   const getPercentage = (voteCount: number): number => {
-    return totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+    if (totalVotes === 0) return 0;
+    const percentage = Math.round((voteCount / totalVotes) * 100);
+    return Math.max(percentage, 5); // Minimum 5% for visibility
   };
 
   const isExpired = new Date() > new Date(poll?.endDate);
@@ -180,6 +197,14 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
             </View>
           </View>
         )}
+        
+        {/* Debug Info - Remove in production */}
+        {__DEV__ && (
+          <View style={styles.debugContainer}>
+            <Text style={styles.debugText}>Debug: Total Votes: {totalVotes}</Text>
+            <Text style={styles.debugText}>Candidates: {candidates.map(c => `${c.name}: ${c.voteCount}`).join(', ')}</Text>
+          </View>
+        )}
 
         {/* Main Comparison Section */}
         <View style={styles.comparisonSection}>
@@ -189,32 +214,36 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
               <View style={styles.candidateContainer}>
                 <View style={styles.candidateContent}>
                   <View style={styles.candidateImageContainer}>
-                    <View style={styles.candidateImage}>
-                      {candidates[0].imageUrl ? (
-                        <Image 
-                          source={{ uri: candidates[0].imageUrl }} 
-                          style={styles.image}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.placeholderImage}>
-                          <Ionicons name="person" size={32} color="#9ca3af" />
-                        </View>
-                      )}
-                      {/* Check if this candidate was chosen */}
-                      {poll.votedDetails?.alreadyVoted && poll.pollOptions?.find(option => option.candidateId === candidates[0].id)?.id === poll.votedDetails?.optionChosen && (
-                        <View style={styles.votedOverlay}>
-                          <Text style={styles.votedText}>VOTED</Text>
-                        </View>
-                      )}
-                    </View>
+                    <TouchableOpacity 
+                      style={styles.candidateImageTouchable}
+                      onPress={() => !hasVoted && !isExpired && handleVote(candidates[0].id)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.candidateImage}>
+                        {candidates[0].imageUrl ? (
+                          <Image 
+                            source={{ uri: candidates[0].imageUrl }} 
+                            style={styles.image}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View style={styles.placeholderImage}>
+                            <Ionicons name="person" size={32} color="#9ca3af" />
+                          </View>
+                        )}
+                        {/* Check if this candidate was chosen */}
+                        {poll.votedDetails?.alreadyVoted && poll.pollOptions?.find(option => option.candidateId === candidates[0].id)?.id === poll.votedDetails?.optionChosen && (
+                          <View style={styles.votedOverlay}>
+                            <Text style={styles.votedText}>VOTED</Text>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    {/* Plus icon outside the image container */}
                     {!hasVoted && !isExpired && (
-                      <TouchableOpacity
-                        style={[styles.voteButton, { backgroundColor: getCandidateColor(0).bg }]}
-                        onPress={() => handleVote(candidates[0].id)}
-                      >
-                        <Text style={styles.voteButtonText}>Vote</Text>
-                      </TouchableOpacity>
+                      <View style={styles.plusIcon}>
+                        <Ionicons name="add" size={14} color="#ffffff" />
+                      </View>
                     )}
                   </View>
                   
@@ -232,7 +261,7 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
                         style={[
                           styles.voteStatsFill,
                           { 
-                            height: `${Math.max(getPercentage(candidates[0].voteCount), 5)}%`, // Minimum 5% height for visibility
+                            height: `${getPercentage(candidates[0].voteCount)}%`,
                             backgroundColor: getCandidateColor(0).progress,
                           }
                         ]}
@@ -263,32 +292,36 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
               <View style={styles.candidateContainer}>
                 <View style={styles.candidateContent}>
                   <View style={styles.candidateImageContainer}>
-                    <View style={styles.candidateImage}>
-                      {candidates[1].imageUrl ? (
-                        <Image 
-                          source={{ uri: candidates[1].imageUrl }} 
-                          style={styles.image}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.placeholderImage}>
-                          <Ionicons name="person" size={32} color="#9ca3af" />
-                        </View>
-                      )}
-                      {/* Check if this candidate was chosen */}
-                      {poll.votedDetails?.alreadyVoted && poll.pollOptions?.find(option => option.candidateId === candidates[1].id)?.id === poll.votedDetails?.optionChosen && (
-                        <View style={styles.votedOverlay}>
-                          <Text style={styles.votedText}>VOTED</Text>
-                        </View>
-                      )}
-                    </View>
+                    <TouchableOpacity 
+                      style={styles.candidateImageTouchable}
+                      onPress={() => !hasVoted && !isExpired && handleVote(candidates[1].id)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.candidateImage}>
+                        {candidates[1].imageUrl ? (
+                          <Image 
+                            source={{ uri: candidates[1].imageUrl }} 
+                            style={styles.image}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View style={styles.placeholderImage}>
+                            <Ionicons name="person" size={32} color="#9ca3af" />
+                          </View>
+                        )}
+                        {/* Check if this candidate was chosen */}
+                        {poll.votedDetails?.alreadyVoted && poll.pollOptions?.find(option => option.candidateId === candidates[1].id)?.id === poll.votedDetails?.optionChosen && (
+                          <View style={styles.votedOverlay}>
+                            <Text style={styles.votedText}>VOTED</Text>
+                          </View>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    {/* Plus icon outside the image container */}
                     {!hasVoted && !isExpired && (
-                      <TouchableOpacity
-                        style={[styles.voteButton, { backgroundColor: getCandidateColor(1).bg }]}
-                        onPress={() => handleVote(candidates[1].id)}
-                      >
-                        <Text style={styles.voteButtonText}>Vote</Text>
-                      </TouchableOpacity>
+                      <View style={styles.plusIcon}>
+                        <Ionicons name="add" size={14} color="#ffffff" />
+                      </View>
                     )}
                   </View>
                   
@@ -306,7 +339,7 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
                         style={[
                           styles.voteStatsFill,
                           { 
-                            height: `${Math.max(getPercentage(candidates[1].voteCount), 5)}%`, // Minimum 5% height for visibility
+                            height: `${getPercentage(candidates[1].voteCount)}%`,
                             backgroundColor: getCandidateColor(1).progress,
                           }
                         ]}
@@ -336,26 +369,30 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
                 return (
                   <View key={candidate.id} style={styles.multipleCandidateItem}>
                     <View style={styles.multipleCandidateImageContainer}>
-                      <View style={styles.multipleCandidateImage}>
-                        {candidate.imageUrl ? (
-                          <Image 
-                            source={{ uri: candidate.imageUrl }} 
-                            style={styles.image}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <View style={styles.placeholderImage}>
-                            <Ionicons name="person" size={24} color="#9ca3af" />
-                          </View>
-                        )}
-                      </View>
+                      <TouchableOpacity 
+                        style={styles.multipleCandidateImageTouchable}
+                        onPress={() => !isDisabled && handleVote(candidate.id)}
+                        activeOpacity={0.8}
+                      >
+                        <View style={styles.multipleCandidateImage}>
+                          {candidate.imageUrl ? (
+                            <Image 
+                              source={{ uri: candidate.imageUrl }} 
+                              style={styles.image}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View style={styles.placeholderImage}>
+                              <Ionicons name="person" size={24} color="#9ca3af" />
+                            </View>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                      {/* Plus icon outside the image container for multiple candidates */}
                       {!isDisabled && (
-                        <TouchableOpacity
-                          style={[styles.multipleVoteButton, { backgroundColor: colorScheme.bg }]}
-                          onPress={() => handleVote(candidate.id)}
-                        >
-                          <Text style={styles.multipleVoteButtonText}>Vote</Text>
-                        </TouchableOpacity>
+                        <View style={styles.multiplePlusIcon}>
+                          <Ionicons name="add" size={12} color="#ffffff" />
+                        </View>
                       )}
                     </View>
                     
@@ -373,7 +410,7 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
                           style={[
                             styles.multipleVoteStatsFill,
                             { 
-                              height: `${Math.max(getPercentage(candidate.voteCount), 5)}%`,
+                              height: `${getPercentage(candidate.voteCount)}%`,
                               backgroundColor: colorScheme.progress,
                             }
                           ]}
@@ -518,23 +555,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: 12,
+    minHeight: 300,
   },
   candidateContainer: {
     flex: 1,
   },
   candidateContent: {
     alignItems: 'center',
-    height: '100%',
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 8,
   },
   candidateImageContainer: {
     position: 'relative',
     marginBottom: 12,
   },
+  candidateImageTouchable: {
+    borderRadius: 40,
+    overflow: 'hidden',
+  },
   candidateImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    overflow: 'hidden',
     borderWidth: 3,
     borderColor: '#e5e7eb',
     position: 'relative',
@@ -566,27 +609,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  voteButton: {
+  plusIcon: {
     position: 'absolute',
-    bottom: -4,
-    left: '50%',
-    transform: [{ translateX: -20 }],
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    bottom: -6,
+    right: -6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#ef4444',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  voteButtonText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
+    elevation: 20,
   },
   candidateName: {
     fontSize: 16,
@@ -603,9 +646,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   voteStatsContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
     width: '100%',
+    marginTop: 8,
   },
   voteInfoContainer: {
     marginTop: 4,
@@ -617,11 +659,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   voteStatsBar: {
-    height: 80,
-    backgroundColor: '#f3f4f6',
+    height: 100,
+    backgroundColor: '#f8fafc',
     borderRadius: 8,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   voteStatsFill: {
     position: 'absolute',
@@ -642,15 +686,15 @@ const styles = StyleSheet.create({
   voteCount: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    color: '#1f2937',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   votePercentage: {
     fontSize: 12,
-    color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    color: '#374151',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
@@ -686,27 +730,38 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 8,
   },
+  multipleCandidateImageTouchable: {
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
   multipleCandidateImage: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#e5e7eb',
   },
-  multipleVoteButton: {
+  multiplePlusIcon: {
     position: 'absolute',
     bottom: -4,
-    left: '50%',
-    transform: [{ translateX: -15 }],
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    right: -4,
+    width: 24,
+    height: 24,
     borderRadius: 12,
-  },
-  multipleVoteButtonText: {
-    color: '#ffffff',
-    fontSize: 10,
-    fontWeight: '600',
+    backgroundColor: '#ef4444',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 20,
   },
   multipleCandidateName: {
     fontSize: 14,
@@ -735,11 +790,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   multipleVoteStatsBar: {
-    height: 60,
-    backgroundColor: '#f3f4f6',
+    height: 80,
+    backgroundColor: '#f8fafc',
     borderRadius: 6,
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   multipleVoteStatsFill: {
     position: 'absolute',
@@ -760,16 +817,29 @@ const styles = StyleSheet.create({
   multipleVoteCount: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    color: '#1f2937',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   multipleVotePercentage: {
     fontSize: 10,
-    color: '#ffffff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    color: '#374151',
+    textShadowColor: 'rgba(255, 255, 255, 0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
+  },
+  debugContainer: {
+    backgroundColor: '#f3f4f6',
+    padding: 8,
+    margin: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  debugText: {
+    fontSize: 10,
+    color: '#6b7280',
+    fontFamily: 'monospace',
   },
 });

@@ -1,0 +1,143 @@
+{
+  "welcome": "Welcome to MeroVote",
+  "vote": "Vote",
+  "comparison_voting": "Comparison Voting",
+  "comment": "Comment",
+  "voting_ends_in": "Voting ends in",
+  "choose_favorite": "Choose your favorite",
+  "thank_you_voting": "Thank you for participating in this poll!",
+  "active": "Active",
+  "login_success": "Successfully logged in!",
+  "login_failed": "Login failed. Please try again.",
+  "show_comments": "Show comments",
+  "hide_comments": "Hide comments",
+  "success": "Success",
+  "already_voted": "You have already voted on this poll",
+  "poll_ended": "This poll has ended",
+  "select_language": "Select Language",
+  "days_left": "{{count}} days left",
+  "days_left_plural": "{{count}} days left",
+  "hours_left": "{{count}} hours left",
+  "hours_left_plural": "{{count}} hours left",
+  "minutes_left": "{{count}} minutes left",
+  "minutes_left_plural": "{{count}} minutes left",
+  "vote_success": "Your vote has been successfully recorded!",
+  "info": "Info",
+  
+  "not_found": {
+    "title": "Page Not Found",
+    "message": "The page you are looking for was not found."
+  },
+  "voting": {
+    "auth_required_title": "Authentication Required",
+    "auth_required_message": "Please login to cast your vote",
+    "types": {
+      "reaction_based": "Reaction-Based",
+      "one_vs_one": "One vs One",
+      "default": "Voting"
+    },
+    "ratings": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "average": "Average",
+      "poor": "Poor",
+      "gajjab": "Gajjab",
+      "bekar": "Bekar",
+      "furious": "Furious"
+    },
+    "errors": {
+      "title": "Error",
+      "vote_failed": "Failed to vote",
+      "already_voted": "You have already voted on this poll",
+      "poll_not_active": "This poll is not currently active",
+      "poll_option_not_found": "Poll option not found",
+      "user_not_logged_in": "You must be logged in to vote",
+      "poll_not_found": "Poll not found",
+      "voting_ended": "Voting has ended for this poll"
+    },
+    "ended": "Ended",
+    "voted": "Voted",
+    "days_remaining": "{{count}} days remaining",
+    "hours_remaining": "{{count}} hours remaining",
+    "minutes_remaining": "{{count}} minutes remaining"
+  },
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet",
+    "loading": "Loading...",
+    "placeholders": {
+      "name": "Your name",
+      "comment": "Write your comment...",
+      "comment_with_limit": "Your comment (20 words only)"
+    },
+    "actions": {
+      "post_comment": "Post Comment",
+      "react": "React"
+    },
+    "errors": {
+      "fill_fields": "Please fill both comment and name",
+      "word_limit": "Comment cannot exceed 20 words"
+    },
+    "success": {
+      "comment_posted": "Your comment has been posted",
+      "reaction_added": "Reaction added"
+    },
+    "word_count": "Word count"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} minutes ago",
+    "hours_ago": "{{count}} hours ago",
+    "days_ago": "{{count}} days ago"
+  },
+  "error": "Error",
+  "success": "Success",
+  "loading": "Loading...",
+  
+  "home": {
+    "title": "MeroVote",
+    "subtitle": "Nepal's first secure quality voting platform. Share your opinion, stay informed.",
+    "vote_button": "Nepali Polling",
+    "secure_badge": "100% Secure",
+    "quality_voting": "Quality Voting",
+    "stats": {
+      "total_votes": "Total Votes",
+      "active_voters": "Active Voters",
+      "poll_types": "Poll Types"
+    },
+    "categories": {
+      "all": "All",
+      "face_to_face": "Face to Face",
+      "daily": "Daily",
+      "political": "Political"
+    },
+    "loading": "Loading polls...",
+    "no_polls": "No polls found",
+    "error_loading_polls": "Error loading polls",
+    "retry": "Retry",
+    "vote_failed": "Failed to vote"
+  },
+  
+  "header": {
+    "app_name": "MeroVote",
+    "nav": {
+      "home": "Home",
+      "admin": "Admin",
+      "login": "Login"
+    },
+    "status": {
+      "secure": "Secure",
+      "verified": "Verified"
+    }
+  },
+  
+  "admin": {
+    "dashboard": "Dashboard",
+    "stats": {
+      "total_votes": "Total Votes",
+      "total_polls": "Total Polls",
+      "active_polls": "Active Polls",
+      "total_comments": "Total Comments"
+    }
+  }
+}

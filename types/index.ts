@@ -4,6 +4,7 @@ export interface PollCategory {
   label: string;
   icon: string;
   order: number;
+  labelKey: string; // Translation key
 }
 
 export interface PollOption {

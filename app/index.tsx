@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { apiService } from '../services/api';
+import { translationService } from '../services/translation';
 import { AggregatedPoll, PollCategory, PollStats } from '../types';
 import Header from '../components/Header';
 import VotingCard from '../components/VotingCard';
@@ -21,11 +22,10 @@ import BannerCarousel from '../components/BannerCarousel';
 import PollCategories from '../components/PollCategories';
 
 const POLL_CATEGORIES: PollCategory[] = [
-  { id: 'ALL', label: 'All', icon: 'grid', order: 0 },
-  { id: 'POLITICS', label: 'Politics', icon: 'landmark', order: 1 },
-  { id: 'SOCIAL', label: 'Social', icon: 'users', order: 2 },
-  { id: 'ENTERTAINMENT', label: 'Entertainment', icon: 'star', order: 3 },
-  { id: 'SPORTS', label: 'Sports', icon: 'zap', order: 4 },
+  { id: 'All', label: 'All', icon: 'grid', order: 1, labelKey: 'home.categories.all' },
+  { id: 'FaceToFace', label: 'Face to Face', icon: 'people', order: 2, labelKey: 'home.categories.face_to_face' },
+  { id: 'Daily', label: 'Daily', icon: 'zap', order: 3, labelKey: 'home.categories.daily' },
+  { id: 'Political', label: 'Political', icon: 'landmark', order: 4, labelKey: 'home.categories.political' },
 ];
 
 export default function HomeScreen() {
@@ -46,7 +46,7 @@ export default function HomeScreen() {
   // Filter polls locally based on selected category
   const polls = React.useMemo(() => {
     if (!allPollsData) return [];
-    if (selectedCategory.id === 'ALL') return allPollsData;
+    if (selectedCategory.id === 'All') return allPollsData;
     
     return allPollsData.filter(poll => {
       // Check if poll categories include the selected category
@@ -96,9 +96,9 @@ export default function HomeScreen() {
       <View style={styles.container}>
         <Header stats={stats} />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Error loading polls</Text>
+          <Text style={styles.errorText}>{translationService.t('home.error_loading_polls')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{translationService.t('home.retry')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -131,11 +131,11 @@ export default function HomeScreen() {
         <View style={styles.pollsContainer}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading polls...</Text>
+              <Text style={styles.loadingText}>{translationService.t('home.loading')}</Text>
             </View>
           ) : polls.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No polls found</Text>
+              <Text style={styles.emptyText}>{translationService.t('home.no_polls')}</Text>
             </View>
           ) : (
             polls.map(renderPoll)

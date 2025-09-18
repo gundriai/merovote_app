@@ -25,12 +25,18 @@ class ApiService {
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('HTTP error! status: 401 - Authentication required');
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      // Only log non-401 errors to avoid console spam for expected auth failures
+      if (!(error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication required')))) {
+        console.error('API request failed:', error);
+      }
       throw error;
     }
   }

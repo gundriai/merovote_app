@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PollCategory } from '../types';
+import { translationService } from '../services/translation';
 
 interface PollCategoriesProps {
   categories: PollCategory[];
@@ -21,7 +22,7 @@ const getIconName = (iconType: string): keyof typeof Ionicons.glyphMap => {
       return 'grid-outline';
     case 'landmark':
       return 'business-outline';
-    case 'users':
+    case 'people':
       return 'people-outline';
     case 'star':
       return 'star-outline';
@@ -47,6 +48,7 @@ export default function PollCategories({
         {categories.map((category) => {
           const isActive = selectedCategory.id === category.id;
           const iconName = getIconName(category.icon);
+          const translatedLabel = translationService.t(category.labelKey);
           
           return (
             <TouchableOpacity
@@ -66,7 +68,7 @@ export default function PollCategories({
                   isActive && styles.activeCategoryText,
                 ]}
               >
-                {category.label}
+                {translatedLabel}
               </Text>
               {isActive && <View style={styles.activeIndicator} />}
             </TouchableOpacity>

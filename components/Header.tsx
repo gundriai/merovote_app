@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { PollStats } from '../types';
+import { translationService } from '../services/translation';
 
 interface HeaderProps {
   stats?: PollStats;
@@ -32,13 +33,13 @@ export default function Header({ stats }: HeaderProps) {
             <View style={styles.logo}>
               <Ionicons name="checkmark-circle" size={24} color="#ffffff" />
             </View>
-            <Text style={styles.appName}>MeroVote</Text>
+            <Text style={styles.appName}>{translationService.t('header.app_name')}</Text>
           </View>
         </View>
 
         <View style={styles.rightSection}>
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={styles.loginButtonText}>{translationService.t('header.nav.login')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -48,11 +49,11 @@ export default function Header({ stats }: HeaderProps) {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <View style={styles.statDot} />
-            <Text style={styles.statText}>{stats.activeVoters || 0} Active</Text>
+            <Text style={styles.statText}>{stats.activeVoters || 0} {translationService.t('header.status.verified')}</Text>
           </View>
           <View style={styles.statItem}>
             <View style={[styles.statDot, { backgroundColor: '#10b981' }]} />
-            <Text style={styles.statText}>Secure</Text>
+            <Text style={styles.statText}>{translationService.t('header.status.secure')}</Text>
           </View>
         </View>
       )}

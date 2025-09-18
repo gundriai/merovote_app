@@ -123,17 +123,19 @@ export default function VotingCard({ poll }: VotingCardProps) {
       hapticFeedback.success();
       showAlert('Success', 'Your vote has been recorded successfully!', 'success');
     } catch (error) {
-      console.error('Error voting:', error);
-      hapticFeedback.error();
-      
-      // Check if it's an authentication error
-      if (error instanceof Error && error.message.includes('401')) {
+      // Check if it's an authentication error first
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication required'))) {
+        // Don't log 401 errors to console as they're expected for unauthenticated users
+        hapticFeedback.warning();
         showAlert('Login Required', 'Please login to cast your vote', 'warning');
-        // Navigate to login screen
+        // Navigate to login screen immediately
         setTimeout(() => {
           router.push('/login');
         }, 1500);
       } else {
+        // Log other errors and show error message
+        console.error('Error voting:', error);
+        hapticFeedback.error();
         showAlert('Error', 'Failed to cast vote. Please try again.', 'error');
       }
     }
