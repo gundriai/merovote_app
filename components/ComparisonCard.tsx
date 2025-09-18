@@ -87,7 +87,17 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
     } catch (error) {
       console.error('Error voting:', error);
       hapticFeedback.error();
-      showAlert('Error', 'Failed to cast vote. Please try again.', 'error');
+      
+      // Check if it's an authentication error
+      if (error instanceof Error && error.message.includes('401')) {
+        showAlert('Login Required', 'Please login to cast your vote', 'warning');
+        // Navigate to login screen
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+      } else {
+        showAlert('Error', 'Failed to cast vote. Please try again.', 'error');
+      }
     }
   };
 
