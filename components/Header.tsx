@@ -49,7 +49,7 @@ export default function Header({ stats }: HeaderProps) {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <View style={styles.statDot} />
-            <Text style={styles.statText}>{stats.activeVoters || 0} {translationService.t('header.status.verified')}</Text>
+            <Text style={styles.statText}>{stats.activePolls || 0} {translationService.t('header.status.verified')}</Text>
           </View>
           <View style={styles.statItem}>
             <View style={[styles.statDot, { backgroundColor: '#10b981' }]} />

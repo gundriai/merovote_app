@@ -53,7 +53,17 @@ export default function BottomNavigation() {
   const pathname = usePathname();
 
   const handleTabPress = (route: string) => {
-    router.push(route);
+    if (route === '/') {
+      router.push('/');
+    } else if (route === '/search') {
+      router.push('/search');
+    } else if (route === '/create') {
+      router.push('/create');
+    } else if (route === '/activity') {
+      router.push('/activity');
+    } else if (route === '/profile') {
+      router.push('/profile');
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,16 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { translationService } from '../services/translation';
 import { apiService } from '../services/api';
 import { showAlert, hapticFeedback } from '../utils/mobile';
-
-interface Comment {
-  id: string;
-  content: string;
-  author: string;
-  createdAt: string;
-  gajjabCount: number;
-  bekarCount: number;
-  furiousCount: number;
-}
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Comment } from '../types';
 
 interface CommentSectionProps {
   pollId: string;
@@ -32,30 +24,17 @@ interface CommentSectionProps {
 
 export default function CommentSection({ pollId, showWordLimit = false, onClose }: CommentSectionProps) {
   const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const queryClient = useQueryClient();
 
-  // Mock comments for now - replace with API call
-  const mockComments: Comment[] = [
-    {
-      id: '1',
-      content: 'रवि लामिछाने नै उत्तम विकल्प हो',
-      author: 'राम बहादुर',
-      createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      gajjabCount: 12,
-      bekarCount: 2,
-      furiousCount: 1,
-    },
-    {
-      id: '2',
-      content: 'गगन थापाको नेतृत्व चाहिन्छ',
-      author: 'सीता देवी',
-      createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      gajjabCount: 8,
-      bekarCount: 5,
-      furiousCount: 0,
-    },
-  ];
+  // Fetch poll data to get comments
+  const { data: pollData, isLoading: pollLoading } = useQuery({
+    queryKey: ['poll', pollId],
+    queryFn: () => apiService.getPollById(pollId),
+    enabled: !!pollId,
+  });
+
+  // Get comments from poll data
+  const comments = pollData?.comments || [];
 
   const getWordCount = (text: string): number => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -66,80 +45,74 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
     const commentDate = new Date(dateString);
     const diffInMinutes = Math.floor((now.getTime() - commentDate.getTime()) / (1000 * 60));
     
-    if (diffInMinutes < 1) return translationService.t('time.just_now', 'just now');
-    if (diffInMinutes < 60) return `${diffInMinutes} ${translationService.t('time.minutes_ago', 'minutes ago')}`;
+    if (diffInMinutes < 1) return translationService.t('time.just_now');
+    if (diffInMinutes < 60) return translationService.t('time.minutes_ago', { count: diffInMinutes });
     
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} ${translationService.t('time.hours_ago', 'hours ago')}`;
+    if (diffInHours < 24) return translationService.t('time.hours_ago', { count: diffInHours });
     
     const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays} ${translationService.t('time.days_ago', 'days ago')}`;
+    return translationService.t('time.days_ago', { count: diffInDays });
   };
+
+  // Add comment mutation
+  const addCommentMutation = useMutation({
+    mutationFn: (commentData: { content: string; author?: string }) => 
+      apiService.addComment(pollId, commentData.content, commentData.author),
+    onSuccess: () => {
+      // Invalidate and refetch poll data to show new comment
+      queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
+      queryClient.invalidateQueries({ queryKey: ['aggregated-polls'] });
+      setComment('');
+      hapticFeedback.success();
+      showAlert('Success', translationService.t('comments.success.comment_posted'), 'success');
+    },
+    onError: (error) => {
+      console.error('Error adding comment:', error);
+      hapticFeedback.error();
+      showAlert('Error', translationService.t('comments.errors.failed'), 'error');
+    },
+  });
 
   const handleSubmitComment = async () => {
     if (!comment.trim()) {
-      showAlert('Error', translationService.t('comments.errors.fill_comment', 'Please enter a comment'), 'error');
+      showAlert('Error', translationService.t('comments.errors.fill_comment'), 'error');
       return;
     }
 
     const wordCount = getWordCount(comment);
     if (showWordLimit && wordCount > 20) {
-      showAlert('Error', translationService.t('comments.errors.word_limit', 'Comment cannot be more than 20 words'), 'error');
+      showAlert('Error', translationService.t('comments.errors.word_limit'), 'error');
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // TODO: Replace with actual API call
-      // await apiService.addComment(pollId, comment.trim());
-      
-      // Mock success - add comment to local state
-      const newComment: Comment = {
-        id: `comment_${Date.now()}`,
-        content: comment.trim(),
-        author: 'You',
-        createdAt: new Date().toISOString(),
-        gajjabCount: 0,
-        bekarCount: 0,
-        furiousCount: 0,
-      };
-      
-      setComments(prev => [newComment, ...prev]);
-      setComment('');
-      hapticFeedback.success();
-      showAlert('Success', translationService.t('comments.success.comment_posted', 'Your comment has been posted'), 'success');
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      hapticFeedback.error();
-      showAlert('Error', translationService.t('comments.errors.failed', 'Failed to add comment'), 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    addCommentMutation.mutate({ content: comment.trim() });
   };
 
-  const handleReactToComment = async (commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious') => {
-    try {
-      // TODO: Replace with actual API call
-      // await apiService.addCommentReaction(pollId, commentId, reactionType);
-      
-      // Mock success - update local state
-      setComments(prev => prev.map((c: Comment) => 
-        c.id === commentId 
-          ? { ...c, [`${reactionType}Count`]: c[`${reactionType}Count`] + 1 }
-          : c
-      ));
-      
+  // Add comment reaction mutation
+  const addReactionMutation = useMutation({
+    mutationFn: ({ commentId, reactionType }: { commentId: string; reactionType: 'gajjab' | 'bekar' | 'furious' }) =>
+      apiService.addCommentReaction(pollId, commentId, reactionType),
+    onSuccess: () => {
+      // Invalidate and refetch poll data to show updated reaction counts
+      queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
+      queryClient.invalidateQueries({ queryKey: ['aggregated-polls'] });
       hapticFeedback.success();
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error adding reaction:', error);
       hapticFeedback.error();
-      showAlert('Error', translationService.t('comments.errors.reaction_failed', 'Failed to add reaction'), 'error');
-    }
+      showAlert('Error', translationService.t('comments.errors.reaction_failed'), 'error');
+    },
+  });
+
+  const handleReactToComment = async (commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious') => {
+    addReactionMutation.mutate({ commentId, reactionType });
   };
 
   const wordCount = getWordCount(comment);
   const isOverLimit = showWordLimit && wordCount > 20;
-  const displayComments = comments.length > 0 ? comments : mockComments;
+  const isSubmitting = addCommentMutation.isPending;
 
   return (
     <View style={styles.container}>
@@ -148,7 +121,7 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
         <View style={styles.headerLeft}>
           <Ionicons name="chatbubbles" size={20} color="#374151" />
           <Text style={styles.headerTitle}>
-            {translationService.t('comments.title', 'Comments')}
+            {translationService.t('comments.title')}
             {showWordLimit && (
               <Text style={styles.wordLimitText}> (20 शब्द सीमा)</Text>
             )}
@@ -163,15 +136,22 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
 
       {/* Comments List */}
       <ScrollView style={styles.commentsList} showsVerticalScrollIndicator={false}>
-        {displayComments.length === 0 ? (
+        {pollLoading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color="#6b7280" />
+            <Text style={styles.emptyText}>
+              {translationService.t('loading')}
+            </Text>
+          </View>
+        ) : comments.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color="#9ca3af" />
             <Text style={styles.emptyText}>
-              {translationService.t('comments.empty', 'No comments yet')}
+              {translationService.t('comments.empty')}
             </Text>
           </View>
         ) : (
-          displayComments.map((comment) => (
+          comments.map((comment: Comment) => (
             <View key={comment.id} style={styles.commentItem}>
               <View style={styles.commentContent}>
                 <Text style={styles.commentText}>{comment.content}</Text>
@@ -223,10 +203,10 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
         <View style={styles.inputContainer}>
           <TextInput
             style={[styles.commentInput, isOverLimit && styles.commentInputError]}
-            placeholder={showWordLimit 
-              ? translationService.t('comments.placeholders.comment_with_limit', 'Your comment (20 words limit)')
-              : translationService.t('comments.placeholders.comment', 'Write your comment...')
-            }
+              placeholder={showWordLimit 
+                ? translationService.t('comments.placeholders.comment_with_limit')
+                : translationService.t('comments.placeholders.comment')
+              }
             value={comment}
             onChangeText={setComment}
             multiline
@@ -248,7 +228,7 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <Text style={styles.submitButtonText}>
-              {translationService.t('comments.actions.post_comment', 'Post Comment')}
+              {translationService.t('comments.actions.post_comment')}
             </Text>
           )}
         </TouchableOpacity>

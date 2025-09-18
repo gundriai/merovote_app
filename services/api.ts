@@ -121,6 +121,34 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Comments API
+  async addComment(pollId: string, content: string, author?: string): Promise<void> {
+    return this.request<void>('/api/comments', {
+      method: 'POST',
+      body: JSON.stringify({
+        pollId,
+        content,
+        author: author || 'Anonymous',
+      }),
+    });
+  }
+
+  async addCommentReaction(pollId: string, commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious'): Promise<void> {
+    return this.request<void>('/api/comments/reactions', {
+      method: 'POST',
+      body: JSON.stringify({
+        pollId,
+        commentId,
+        reactionType,
+      }),
+    });
+  }
+
+  async getComments(pollId: string): Promise<any[]> {
+    const response = await this.request<{comments: any[]}>(`/api/comments/${pollId}`);
+    return response.comments;
+  }
 }
 
 export const apiService = new ApiService();

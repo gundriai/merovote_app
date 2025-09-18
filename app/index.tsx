@@ -94,7 +94,7 @@ export default function HomeScreen() {
   if (error) {
     return (
       <View style={styles.container}>
-        <Header stats={stats} />
+        <Header stats={stats || undefined} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{translationService.t('home.error_loading_polls')}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
@@ -107,7 +107,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Header stats={stats} />
+      <Header stats={stats || undefined} />
       
       <ScrollView
         style={styles.scrollView}

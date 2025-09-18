@@ -25,6 +25,17 @@ export interface Candidate {
   voteCount: number;
 }
 
+export interface Comment {
+  id: string;
+  pollId: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  gajjabCount: number;
+  bekarCount: number;
+  furiousCount: number;
+}
+
 export interface AggregatedPoll {
   id: string;
   title: string;
@@ -40,6 +51,7 @@ export interface AggregatedPoll {
   mediaUrl?: string;
   pollOptions?: PollOption[];
   candidates?: Candidate[];
+  comments?: Comment[];
   voteCounts?: { [key: string]: number };
   votedDetails?: {
     alreadyVoted: boolean;

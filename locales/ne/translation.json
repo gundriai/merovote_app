@@ -12,6 +12,7 @@
   "show_comments": "टिप्पणी देखाउनुहोस्",
   "hide_comments": "टिप्पणी लुकाउनुहोस्",
   "success": "सफलता",
+  "loading": "लोड हुँदै...",
   "already_voted": "तपाईंले यस पोलमा पहिले नै मत दिनुभएको छ",
   "poll_ended": "यो पोल समाप्त भएको छ",
   "select_language": "भाषा चयन गर्नुहोस्",
@@ -23,6 +24,34 @@
   "minutes_left_plural": "{{count}} मिनेट बाँकी",
   "vote_success": "तपाईंको मत सफलतापूर्वक दर्ता भयो!",
   "info": "जानकारी",
+  
+  "time": {
+    "just_now": "अहिले",
+    "minutes_ago": "{{count}} मिनेट अगाडि",
+    "hours_ago": "{{count}} घण्टा अगाडि",
+    "days_ago": "{{count}} दिन अगाडि"
+  },
+  
+  "comments": {
+    "title": "टिप्पणीहरू",
+    "empty": "अहिलेसम्म कुनै टिप्पणी छैन",
+    "placeholders": {
+      "comment": "आफ्नो टिप्पणी लेख्नुहोस्...",
+      "comment_with_limit": "तपाईंको टिप्पणी (२० शब्द सीमा)"
+    },
+    "actions": {
+      "post_comment": "टिप्पणी पोस्ट गर्नुहोस्"
+    },
+    "success": {
+      "comment_posted": "तपाईंको टिप्पणी पोस्ट भयो"
+    },
+    "errors": {
+      "fill_comment": "कृपया टिप्पणी लेख्नुहोस्",
+      "word_limit": "टिप्पणी २० शब्दभन्दा बढी हुन सक्दैन",
+      "failed": "टिप्पणी थप्न असफल",
+      "reaction_failed": "प्रतिक्रिया थप्न असफल"
+    }
+  },
   
   "not_found": {
     "title": "पृष्ठ भेटिएन",

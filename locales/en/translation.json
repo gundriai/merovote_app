@@ -12,6 +12,7 @@
   "show_comments": "Show comments",
   "hide_comments": "Hide comments",
   "success": "Success",
+  "loading": "Loading...",
   "already_voted": "You have already voted on this poll",
   "poll_ended": "This poll has ended",
   "select_language": "Select Language",
@@ -23,6 +24,34 @@
   "minutes_left_plural": "{{count}} minutes left",
   "vote_success": "Your vote has been successfully recorded!",
   "info": "Info",
+  
+  "time": {
+    "just_now": "just now",
+    "minutes_ago": "{{count}} minutes ago",
+    "hours_ago": "{{count}} hours ago",
+    "days_ago": "{{count}} days ago"
+  },
+  
+  "comments": {
+    "title": "Comments",
+    "empty": "No comments yet",
+    "placeholders": {
+      "comment": "Write your comment...",
+      "comment_with_limit": "Your comment (20 words limit)"
+    },
+    "actions": {
+      "post_comment": "Post Comment"
+    },
+    "success": {
+      "comment_posted": "Your comment has been posted"
+    },
+    "errors": {
+      "fill_comment": "Please enter a comment",
+      "word_limit": "Comment cannot be more than 20 words",
+      "failed": "Failed to add comment",
+      "reaction_failed": "Failed to add reaction"
+    }
+  },
   
   "not_found": {
     "title": "Page Not Found",

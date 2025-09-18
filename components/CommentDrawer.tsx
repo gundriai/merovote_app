@@ -6,10 +6,8 @@ import {
   Dimensions,
   TouchableOpacity,
   StyleSheet,
-  PanGestureHandler,
-  State,
 } from 'react-native';
-import { PanGestureHandler as RNGestureHandler } from 'react-native-gesture-handler';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import CommentSection from './CommentSection';
 
 interface CommentDrawerProps {
@@ -101,7 +99,7 @@ export default function CommentDrawer({ visible, onClose, pollId, showWordLimit 
         />
         
         {/* Drawer */}
-        <RNGestureHandler
+        <PanGestureHandler
           ref={gestureRef}
           onGestureEvent={handleGestureEvent}
           onHandlerStateChange={handleGestureStateChange}
@@ -125,7 +123,7 @@ export default function CommentDrawer({ visible, onClose, pollId, showWordLimit 
               onClose={closeDrawer}
             />
           </Animated.View>
-        </RNGestureHandler>
+        </PanGestureHandler>
       </View>
     </Modal>
   );
