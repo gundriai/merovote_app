@@ -50,7 +50,12 @@
       "word_limit": "Comment cannot be more than 20 words",
       "failed": "Failed to add comment",
       "reaction_failed": "Failed to add reaction"
-    }
+    },
+    "auth": {
+      "login_required_comment": "Please login to add comments",
+      "login_required_reaction": "Please login to react to comments"
+    },
+    "login_reminder": "Login to add comments and reactions"
   },
   
   "not_found": {

@@ -13,6 +13,9 @@ class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Get access token from storage (same as web app)
+    const accessToken = await this.getAccessToken();
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -21,24 +24,33 @@ class ApiService {
       ...options,
     };
 
+    // Add authorization header if token exists (same as web app)
+    if (accessToken) {
+      config.headers = {
+        ...config.headers,
+        'Authorization': `Bearer ${accessToken}`,
+      };
+    }
+
     try {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('HTTP error! status: 401 - Authentication required');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const text = await response.text() || response.statusText;
+        throw new Error(`${response.status}: ${text}`);
       }
       
       return await response.json();
     } catch (error) {
-      // Only log non-401 errors to avoid console spam for expected auth failures
-      if (!(error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication required')))) {
-        console.error('API request failed:', error);
-      }
+      console.error('API request failed:', error);
       throw error;
     }
+  }
+
+  private async getAccessToken(): Promise<string | null> {
+    // TODO: Implement proper token storage for mobile
+    // For now, return null to match unauthenticated behavior
+    return null;
   }
 
   // Polls API - Using Aggregated Polls API
@@ -122,33 +134,75 @@ class ApiService {
     });
   }
 
-  // Comments API
+  // Comments API - Using same approach as web app
   async addComment(pollId: string, content: string, author?: string): Promise<void> {
-    return this.request<void>('/api/comments', {
-      method: 'POST',
-      body: JSON.stringify({
+    try {
+      // Get current poll data
+      const poll = await this.getPollById(pollId);
+      
+      // Create new comment
+      const newComment = {
+        id: `comment_${Date.now()}`,
         pollId,
         content,
         author: author || 'Anonymous',
-      }),
-    });
+        createdAt: new Date().toISOString(),
+        gajjabCount: 0,
+        bekarCount: 0,
+        furiousCount: 0
+      };
+
+      // Add comment to existing comments
+      const updatedComments = [...(poll.comments || []), newComment];
+
+      // Update poll with new comment using PATCH (same as web app)
+      return this.request<void>(`/api/polls/${pollId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          comments: updatedComments
+        }),
+      });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      throw new Error('Failed to add comment');
+    }
   }
 
   async addCommentReaction(pollId: string, commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious'): Promise<void> {
-    return this.request<void>('/api/comments/reactions', {
-      method: 'POST',
-      body: JSON.stringify({
-        pollId,
-        commentId,
-        reactionType,
-      }),
-    });
+    try {
+      // Get current poll data
+      const poll = await this.getPollById(pollId);
+      
+      // Find and update the comment
+      const updatedComments = (poll.comments || []).map(comment => {
+        if (comment.id === commentId) {
+          return {
+            ...comment,
+            [`${reactionType}Count`]: (comment[`${reactionType}Count`] || 0) + 1
+          };
+        }
+        return comment;
+      });
+
+      // Update poll with updated comments using PATCH (same as web app)
+      return this.request<void>(`/api/polls/${pollId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          comments: updatedComments
+        }),
+      });
+    } catch (error) {
+      console.error('Error adding comment reaction:', error);
+      throw new Error('Failed to add comment reaction');
+    }
   }
 
   async getComments(pollId: string): Promise<any[]> {
-    const response = await this.request<{comments: any[]}>(`/api/comments/${pollId}`);
-    return response.comments;
+    // Comments are included in the poll data, so we don't need a separate endpoint
+    const poll = await this.getPollById(pollId);
+    return poll.comments || [];
   }
 }
 
 export const apiService = new ApiService();
+

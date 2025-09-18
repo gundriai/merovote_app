@@ -15,6 +15,7 @@ import { apiService } from '../services/api';
 import { showAlert, hapticFeedback } from '../utils/mobile';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Comment } from '../types';
+import { router } from 'expo-router';
 
 interface CommentSectionProps {
   pollId: string;
@@ -64,25 +65,47 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
       queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
       queryClient.invalidateQueries({ queryKey: ['aggregated-polls'] });
       setComment('');
-      hapticFeedback.success();
-      showAlert('Success', translationService.t('comments.success.comment_posted'), 'success');
+      
+      try {
+        hapticFeedback.success();
+      } catch (hapticError) {
+        console.warn('Haptic feedback failed:', hapticError);
+      }
+      
+      showAlert('Success', 'Your comment has been posted!', 'success');
     },
     onError: (error) => {
       console.error('Error adding comment:', error);
-      hapticFeedback.error();
-      showAlert('Error', translationService.t('comments.errors.failed'), 'error');
+      
+      try {
+        hapticFeedback.error();
+      } catch (hapticError) {
+        console.warn('Haptic feedback failed:', hapticError);
+      }
+      
+      // Handle authentication error (same as web app)
+      if (error instanceof Error && error.message.includes('401')) {
+        showAlert('Login Required', 'Please login to add comments', 'warning');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+      } else {
+        // Use the actual error message (same as web app)
+        const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
+        showAlert('Error', errorMessage, 'error');
+      }
     },
   });
 
   const handleSubmitComment = async () => {
     if (!comment.trim()) {
-      showAlert('Error', translationService.t('comments.errors.fill_comment'), 'error');
+      showAlert('Error', 'Please enter a comment', 'error');
       return;
     }
 
     const wordCount = getWordCount(comment);
     if (showWordLimit && wordCount > 20) {
-      showAlert('Error', translationService.t('comments.errors.word_limit'), 'error');
+      showAlert('Error', 'Comment cannot be more than 20 words', 'error');
       return;
     }
 
@@ -97,12 +120,33 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
       // Invalidate and refetch poll data to show updated reaction counts
       queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
       queryClient.invalidateQueries({ queryKey: ['aggregated-polls'] });
-      hapticFeedback.success();
+      
+      try {
+        hapticFeedback.success();
+      } catch (hapticError) {
+        console.warn('Haptic feedback failed:', hapticError);
+      }
     },
     onError: (error) => {
       console.error('Error adding reaction:', error);
-      hapticFeedback.error();
-      showAlert('Error', translationService.t('comments.errors.reaction_failed'), 'error');
+      
+      try {
+        hapticFeedback.error();
+      } catch (hapticError) {
+        console.warn('Haptic feedback failed:', hapticError);
+      }
+      
+      // Handle authentication error (same as web app)
+      if (error instanceof Error && error.message.includes('401')) {
+        showAlert('Login Required', 'Please login to react to comments', 'warning');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+      } else {
+        // Use the actual error message (same as web app)
+        const errorMessage = error instanceof Error ? error.message : 'Failed to add reaction';
+        showAlert('Error', errorMessage, 'error');
+      }
     },
   });
 
@@ -121,7 +165,7 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
         <View style={styles.headerLeft}>
           <Ionicons name="chatbubbles" size={20} color="#374151" />
           <Text style={styles.headerTitle}>
-            {translationService.t('comments.title')}
+            Comments
             {showWordLimit && (
               <Text style={styles.wordLimitText}> (20 शब्द सीमा)</Text>
             )}
@@ -140,14 +184,14 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
           <View style={styles.emptyState}>
             <ActivityIndicator size="large" color="#6b7280" />
             <Text style={styles.emptyText}>
-              {translationService.t('loading')}
+              Loading comments...
             </Text>
           </View>
         ) : comments.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="chatbubbles-outline" size={48} color="#9ca3af" />
             <Text style={styles.emptyText}>
-              {translationService.t('comments.empty')}
+              No comments yet
             </Text>
           </View>
         ) : (
@@ -200,17 +244,26 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
 
       {/* Comment Form */}
       <View style={styles.commentForm}>
+        {/* Login reminder for unauthenticated users */}
+        <View style={styles.loginReminder}>
+          <Ionicons name="information-circle-outline" size={16} color="#6b7280" />
+          <Text style={styles.loginReminderText}>
+            Login to add comments and reactions
+          </Text>
+        </View>
+        
         <View style={styles.inputContainer}>
           <TextInput
             style={[styles.commentInput, isOverLimit && styles.commentInputError]}
               placeholder={showWordLimit 
-                ? translationService.t('comments.placeholders.comment_with_limit')
-                : translationService.t('comments.placeholders.comment')
+                ? 'Your comment (20 words limit)'
+                : 'Write your comment...'
               }
             value={comment}
             onChangeText={setComment}
             multiline
             maxLength={500}
+            editable={true} // Allow typing but will show auth error on submit
           />
           {showWordLimit && (
             <Text style={[styles.wordCount, isOverLimit && styles.wordCountError]}>
@@ -228,7 +281,7 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <Text style={styles.submitButtonText}>
-              {translationService.t('comments.actions.post_comment')}
+              Post Comment
             </Text>
           )}
         </TouchableOpacity>
@@ -335,6 +388,23 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
+  },
+  loginReminder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  loginReminderText: {
+    marginLeft: 6,
+    fontSize: 12,
+    color: '#6b7280',
+    fontStyle: 'italic',
   },
   inputContainer: {
     marginBottom: 12,
