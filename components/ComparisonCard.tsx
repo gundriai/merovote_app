@@ -11,6 +11,8 @@ import { router } from 'expo-router';
 import { AggregatedPoll, Candidate } from '../types';
 import { apiService } from '../services/api';
 import { showAlert, hapticFeedback, formatTimeRemaining } from '../utils/mobile';
+import { translationService } from '../services/translation';
+import CommentDrawer from './CommentDrawer';
 
 interface ComparisonCardProps {
   poll: AggregatedPoll;
@@ -61,6 +63,7 @@ const getCandidateColor = (index: number) => {
 export default function ComparisonCard({ poll }: ComparisonCardProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   // Use candidates directly from poll data
   const candidates = (poll as any)?.candidates || [];
@@ -202,7 +205,7 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
         {__DEV__ && (
           <View style={styles.debugContainer}>
             <Text style={styles.debugText}>Debug: Total Votes: {totalVotes}</Text>
-            <Text style={styles.debugText}>Candidates: {candidates.map(c => `${c.name}: ${c.voteCount}`).join(', ')}</Text>
+            <Text style={styles.debugText}>Candidates: {candidates.map((c: any) => `${c.name}: ${c.voteCount}`).join(', ')}</Text>
           </View>
         )}
 
@@ -432,7 +435,27 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
             </View>
           )}
         </View>
+
+        {/* Comment Button */}
+        <TouchableOpacity
+          style={styles.commentButton}
+          onPress={() => setShowComments(true)}
+        >
+          <Ionicons name="chatbubbles-outline" size={20} color="#6b7280" />
+          <Text style={styles.commentButtonText}>
+            {translationService.t('show_comments')}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color="#6b7280" />
+        </TouchableOpacity>
       </View>
+
+      {/* Comment Drawer */}
+      <CommentDrawer
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+        pollId={poll.id}
+        showWordLimit={false}
+      />
     </View>
   );
 }
@@ -841,5 +864,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6b7280',
     fontFamily: 'monospace',
+  },
+  commentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 8,
+  },
+  commentButtonText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
 });

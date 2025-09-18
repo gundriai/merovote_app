@@ -11,6 +11,8 @@ import { router } from 'expo-router';
 import { AggregatedPoll, VoteOption } from '../types';
 import { apiService } from '../services/api';
 import { showAlert, hapticFeedback, formatTimeRemaining } from '../utils/mobile';
+import { translationService } from '../services/translation';
+import CommentDrawer from './CommentDrawer';
 
 interface VotingCardProps {
   poll: AggregatedPoll;
@@ -72,6 +74,7 @@ const getColorStyle = (color: string) => {
 export default function VotingCard({ poll }: VotingCardProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
+  const [showComments, setShowComments] = useState(false);
 
   // Use poll options from API if available, otherwise fallback to hardcoded options
   const voteOptions = poll.pollOptions && poll.pollOptions.length > 0 
@@ -231,7 +234,27 @@ export default function VotingCard({ poll }: VotingCardProps) {
             })}
           </View>
         </View>
+
+        {/* Comment Button */}
+        <TouchableOpacity
+          style={styles.commentButton}
+          onPress={() => setShowComments(true)}
+        >
+          <Ionicons name="chatbubbles-outline" size={20} color="#6b7280" />
+          <Text style={styles.commentButtonText}>
+            {translationService.t('show_comments')}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color="#6b7280" />
+        </TouchableOpacity>
       </View>
+
+      {/* Comment Drawer */}
+      <CommentDrawer
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+        pollId={poll.id}
+        showWordLimit={poll.type === 'REACTION_BASED'}
+      />
     </View>
   );
 }
@@ -380,5 +403,21 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  commentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    gap: 8,
+  },
+  commentButtonText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '500',
   },
 });
