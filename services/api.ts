@@ -71,6 +71,15 @@ class ApiService {
     }
   }
 
+  private async getCurrentUserData(): Promise<any | null> {
+    try {
+      return await StorageManager.getUserData();
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return null;
+    }
+  }
+
   // Polls API - Using Aggregated Polls API
   async getPolls(category?: string): Promise<AggregatedPoll[]> {
     if (category && category !== 'ALL') {
@@ -88,12 +97,18 @@ class ApiService {
 
   async voteOnPoll(pollId: string, optionId: string): Promise<{ success: boolean; error?: string }> {
     try {
+      // Get current user data to include userId
+      const userData = await this.getCurrentUserData();
+      if (!userData) {
+        return { success: false, error: 'Authentication required' };
+      }
+
       await this.request<void>('/api/votes', {
         method: 'POST',
         body: JSON.stringify({ 
           pollId, 
           optionId,
-          // Note: userId should be added from auth context
+          userId: userData.id,
         }),
       });
       return { success: true };
@@ -102,6 +117,20 @@ class ApiService {
       if (error instanceof ApiError) {
         if (error.status === 401) {
           return { success: false, error: 'Authentication required' };
+        }
+        if (error.status === 400) {
+          // Handle specific backend error messages
+          const errorMessage = error.message;
+          if (errorMessage.includes('Already Voted')) {
+            return { success: false, error: 'You have already voted on this poll' };
+          }
+          if (errorMessage.includes('Poll is not active')) {
+            return { success: false, error: 'This poll is not currently active' };
+          }
+          if (errorMessage.includes('Poll not found')) {
+            return { success: false, error: 'Poll not found' };
+          }
+          return { success: false, error: 'Failed to vote on poll' };
         }
         return { success: false, error: 'Failed to vote on poll' };
       }

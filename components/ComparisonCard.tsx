@@ -109,6 +109,15 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to vote';
       
+      // Log the error to console for debugging
+      console.log('Voting error details:', {
+        error,
+        pollId: poll.id,
+        candidateId,
+        errorMessage,
+        timestamp: new Date().toISOString()
+      });
+      
       // Check if it's an authentication error first
       if (errorMessage.includes('Authentication required')) {
         hapticFeedback.warning();
@@ -117,11 +126,19 @@ export default function ComparisonCard({ poll }: ComparisonCardProps) {
         setTimeout(() => {
           router.push('/login');
         }, 1500);
+      } else if (errorMessage.includes('already voted')) {
+        // Handle already voted case gracefully
+        hapticFeedback.warning();
+        showAlert('Already Voted', 'You have already voted on this poll', 'warning');
+        setHasVoted(true); // Update local state
+      } else if (errorMessage.includes('not currently active')) {
+        // Handle inactive poll case
+        hapticFeedback.warning();
+        showAlert('Poll Inactive', 'This poll is not currently active', 'warning');
       } else {
-        // Log other errors and show error message
-        console.error('Error voting:', error);
+        // For other errors, show a generic message but log details
         hapticFeedback.error();
-        showAlert('Error', errorMessage, 'error');
+        showAlert('Voting Failed', 'Unable to cast your vote. Please try again.', 'error');
       }
     }
   };
