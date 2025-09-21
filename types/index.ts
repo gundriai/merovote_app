@@ -27,7 +27,7 @@ export interface Candidate {
 
 export interface Comment {
   id: string;
-  pollId: string;
+  pollId?: string; // Make optional for mock data compatibility
   content: string;
   author: string;
   createdAt: string;

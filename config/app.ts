@@ -1,6 +1,6 @@
 // App configuration for MeroVote mobile app
 export const APP_CONFIG = {
-  API_URL: process.env.EXPO_PUBLIC_API_URL || 'https://txmr1pcp-3300.inc1.devtunnels.ms',
+  API_URL: process.env.EXPO_PUBLIC_API_URL || 'https://merovotebackend-app-hxb0g6deh8auc5gh.centralindia-01.azurewebsites.net',
   APP_NAME: 'MeroVote',
   APP_VERSION: '1.0.0',
   ENABLE_ANALYTICS: process.env.EXPO_PUBLIC_ENABLE_ANALYTICS === 'true',

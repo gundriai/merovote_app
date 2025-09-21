@@ -13,6 +13,7 @@ import { apiService } from '../services/api';
 import { showAlert, hapticFeedback, formatTimeRemaining } from '../utils/mobile';
 import { translationService } from '../services/translation';
 import CommentDrawer from './CommentDrawer';
+import { useAuth } from '../hooks/useAuth';
 
 interface VotingCardProps {
   poll: AggregatedPoll;
@@ -75,6 +76,7 @@ export default function VotingCard({ poll }: VotingCardProps) {
   const [hasVoted, setHasVoted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
   const [showComments, setShowComments] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   // Use poll options from API if available, otherwise fallback to hardcoded options
   const voteOptions = poll.pollOptions && poll.pollOptions.length > 0 
@@ -120,15 +122,20 @@ export default function VotingCard({ poll }: VotingCardProps) {
         throw new Error('Poll option not found');
       }
 
-      await apiService.voteOnPoll(poll.id, pollOption.id);
+      const result = await apiService.voteOnPoll(poll.id, pollOption.id);
       
-      setHasVoted(true);
-      hapticFeedback.success();
-      showAlert('Success', 'Your vote has been recorded successfully!', 'success');
+      if (result.success) {
+        setHasVoted(true);
+        hapticFeedback.success();
+        showAlert('Success', 'Your vote has been recorded successfully!', 'success');
+      } else {
+        throw new Error(result.error || 'Failed to vote');
+      }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to vote';
+      
       // Check if it's an authentication error first
-      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Authentication required'))) {
-        // Don't log 401 errors to console as they're expected for unauthenticated users
+      if (errorMessage.includes('Authentication required')) {
         hapticFeedback.warning();
         showAlert('Login Required', 'Please login to cast your vote', 'warning');
         // Navigate to login screen immediately
@@ -139,7 +146,7 @@ export default function VotingCard({ poll }: VotingCardProps) {
         // Log other errors and show error message
         console.error('Error voting:', error);
         hapticFeedback.error();
-        showAlert('Error', 'Failed to cast vote. Please try again.', 'error');
+        showAlert('Error', errorMessage, 'error');
       }
     }
   };

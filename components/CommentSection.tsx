@@ -16,6 +16,7 @@ import { showAlert, hapticFeedback } from '../utils/mobile';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Comment } from '../types';
 import { router } from 'expo-router';
+import { useAuth } from '../hooks/useAuth';
 
 interface CommentSectionProps {
   pollId: string;
@@ -26,6 +27,7 @@ interface CommentSectionProps {
 export default function CommentSection({ pollId, showWordLimit = false, onClose }: CommentSectionProps) {
   const [comment, setComment] = useState('');
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
 
   // Fetch poll data to get comments
   const { data: pollData, isLoading: pollLoading } = useQuery({
@@ -56,10 +58,15 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
     return translationService.t('time.days_ago', { count: diffInDays });
   };
 
-  // Add comment mutation
+  // Add comment mutation - using real API
   const addCommentMutation = useMutation({
-    mutationFn: (commentData: { content: string; author?: string }) => 
-      apiService.addComment(pollId, commentData.content, commentData.author),
+    mutationFn: async (commentData: { content: string; author?: string }) => {
+      const result = await apiService.addComment(pollId, commentData.content, commentData.author);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add comment');
+      }
+      return result;
+    },
     onSuccess: () => {
       // Invalidate and refetch poll data to show new comment
       queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
@@ -77,23 +84,31 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
     onError: (error) => {
       console.error('Error adding comment:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
+      
+      // Handle authentication error - only show login popup, no error message
+      if (errorMessage.includes('Authentication required')) {
+        try {
+          hapticFeedback.warning();
+        } catch (hapticError) {
+          console.warn('Haptic feedback failed:', hapticError);
+        }
+        
+        showAlert('Login Required', 'Please login to add comments', 'warning');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+        return; // Don't show error message for 401
+      }
+      
+      // For other errors, show error message
       try {
         hapticFeedback.error();
       } catch (hapticError) {
         console.warn('Haptic feedback failed:', hapticError);
       }
       
-      // Handle authentication error (same as web app)
-      if (error instanceof Error && error.message.includes('401')) {
-        showAlert('Login Required', 'Please login to add comments', 'warning');
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-      } else {
-        // Use the actual error message (same as web app)
-        const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
-        showAlert('Error', errorMessage, 'error');
-      }
+      showAlert('Error', errorMessage, 'error');
     },
   });
 
@@ -112,10 +127,15 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
     addCommentMutation.mutate({ content: comment.trim() });
   };
 
-  // Add comment reaction mutation
+  // Add comment reaction mutation - using real API
   const addReactionMutation = useMutation({
-    mutationFn: ({ commentId, reactionType }: { commentId: string; reactionType: 'gajjab' | 'bekar' | 'furious' }) =>
-      apiService.addCommentReaction(pollId, commentId, reactionType),
+    mutationFn: async ({ commentId, reactionType }: { commentId: string; reactionType: 'gajjab' | 'bekar' | 'furious' }) => {
+      const result = await apiService.addCommentReaction(pollId, commentId, reactionType);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to add reaction');
+      }
+      return result;
+    },
     onSuccess: () => {
       // Invalidate and refetch poll data to show updated reaction counts
       queryClient.invalidateQueries({ queryKey: ['poll', pollId] });
@@ -130,23 +150,31 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
     onError: (error) => {
       console.error('Error adding reaction:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add reaction';
+      
+      // Handle authentication error - only show login popup, no error message
+      if (errorMessage.includes('Authentication required')) {
+        try {
+          hapticFeedback.warning();
+        } catch (hapticError) {
+          console.warn('Haptic feedback failed:', hapticError);
+        }
+        
+        showAlert('Login Required', 'Please login to react to comments', 'warning');
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
+        return; // Don't show error message for 401
+      }
+      
+      // For other errors, show error message
       try {
         hapticFeedback.error();
       } catch (hapticError) {
         console.warn('Haptic feedback failed:', hapticError);
       }
       
-      // Handle authentication error (same as web app)
-      if (error instanceof Error && error.message.includes('401')) {
-        showAlert('Login Required', 'Please login to react to comments', 'warning');
-        setTimeout(() => {
-          router.push('/login');
-        }, 1500);
-      } else {
-        // Use the actual error message (same as web app)
-        const errorMessage = error instanceof Error ? error.message : 'Failed to add reaction';
-        showAlert('Error', errorMessage, 'error');
-      }
+      showAlert('Error', errorMessage, 'error');
     },
   });
 

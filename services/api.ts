@@ -1,13 +1,33 @@
 // API service for MeroVote mobile app
 import { AggregatedPoll, PollStats } from '../types';
+import { StorageManager } from './storage';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://txmr1pcp-3300.inc1.devtunnels.ms';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://merovotebackend-app-hxb0g6deh8auc5gh.centralindia-01.azurewebsites.net';
+
+// Error handling utility
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    message: string,
+    public originalError?: Error
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
 class ApiService {
   private baseURL: string;
 
   constructor() {
     this.baseURL = API_BASE_URL;
+  }
+
+  private async throwIfResNotOk(res: Response): Promise<void> {
+    if (!res.ok) {
+      const text = (await res.text()) || res.statusText;
+      throw new ApiError(res.status, text);
+    }
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -34,12 +54,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
-      if (!response.ok) {
-        const text = await response.text() || response.statusText;
-        throw new Error(`${response.status}: ${text}`);
-      }
-      
+      await this.throwIfResNotOk(response);
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
@@ -48,9 +63,12 @@ class ApiService {
   }
 
   private async getAccessToken(): Promise<string | null> {
-    // TODO: Implement proper token storage for mobile
-    // For now, return null to match unauthenticated behavior
-    return null;
+    try {
+      return await StorageManager.getAccessToken();
+    } catch (error) {
+      console.error('Error getting access token:', error);
+      return null;
+    }
   }
 
   // Polls API - Using Aggregated Polls API
@@ -68,15 +86,27 @@ class ApiService {
     return this.request<AggregatedPoll>(`/api/aggregated-polls/${id}`);
   }
 
-  async voteOnPoll(pollId: string, optionId: string): Promise<void> {
-    return this.request<void>('/api/votes', {
-      method: 'POST',
-      body: JSON.stringify({ 
-        pollId, 
-        optionId,
-        // Note: userId should be added from auth context
-      }),
-    });
+  async voteOnPoll(pollId: string, optionId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      await this.request<void>('/api/votes', {
+        method: 'POST',
+        body: JSON.stringify({ 
+          pollId, 
+          optionId,
+          // Note: userId should be added from auth context
+        }),
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error voting on poll:', error);
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          return { success: false, error: 'Authentication required' };
+        }
+        return { success: false, error: 'Failed to vote on poll' };
+      }
+      return { success: false, error: 'Network error' };
+    }
   }
 
   // Admin API - Using regular polls API for admin operations
@@ -134,41 +164,63 @@ class ApiService {
     });
   }
 
-  // Comments API - Using same approach as web app
-  async addComment(pollId: string, content: string, author?: string): Promise<void> {
+  // Comments API - Try different approach
+  async addComment(pollId: string, content: string, author?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      // Get current poll data
-      const poll = await this.getPollById(pollId);
-      
-      // Create new comment
-      const newComment = {
-        id: `comment_${Date.now()}`,
-        pollId,
-        content,
-        author: author || 'Anonymous',
-        createdAt: new Date().toISOString(),
-        gajjabCount: 0,
-        bekarCount: 0,
-        furiousCount: 0
-      };
+      // Try using a dedicated comment endpoint first
+      try {
+        await this.request<void>('/api/comments', {
+          method: 'POST',
+          body: JSON.stringify({
+            pollId,
+            content,
+            author: author || 'Anonymous',
+          }),
+        });
+        return { success: true };
+      } catch (commentError) {
+        console.log('Dedicated comment endpoint failed, trying poll update approach:', commentError);
+        
+        // Fallback to poll update approach (same as web app)
+        const poll = await this.getPollById(pollId);
+        
+        // Create new comment
+        const newComment = {
+          id: `comment_${Date.now()}`,
+          pollId,
+          content,
+          author: author || 'Anonymous',
+          createdAt: new Date().toISOString(),
+          gajjabCount: 0,
+          bekarCount: 0,
+          furiousCount: 0
+        };
 
-      // Add comment to existing comments
-      const updatedComments = [...(poll.comments || []), newComment];
+        // Add comment to existing comments
+        const updatedComments = [...(poll.comments || []), newComment];
 
-      // Update poll with new comment using PATCH (same as web app)
-      return this.request<void>(`/api/polls/${pollId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          comments: updatedComments
-        }),
-      });
+        // Update poll with new comment using PATCH (same as web app)
+        await this.request<void>(`/api/polls/${pollId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            comments: updatedComments
+          }),
+        });
+        return { success: true };
+      }
     } catch (error) {
       console.error('Error adding comment:', error);
-      throw new Error('Failed to add comment');
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          return { success: false, error: 'Authentication required' };
+        }
+        return { success: false, error: 'Failed to add comment' };
+      }
+      return { success: false, error: 'Network error' };
     }
   }
 
-  async addCommentReaction(pollId: string, commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious'): Promise<void> {
+  async addCommentReaction(pollId: string, commentId: string, reactionType: 'gajjab' | 'bekar' | 'furious'): Promise<{ success: boolean; error?: string }> {
     try {
       // Get current poll data
       const poll = await this.getPollById(pollId);
@@ -185,15 +237,22 @@ class ApiService {
       });
 
       // Update poll with updated comments using PATCH (same as web app)
-      return this.request<void>(`/api/polls/${pollId}`, {
+      await this.request<void>(`/api/polls/${pollId}`, {
         method: 'PATCH',
         body: JSON.stringify({
           comments: updatedComments
         }),
       });
+      return { success: true };
     } catch (error) {
       console.error('Error adding comment reaction:', error);
-      throw new Error('Failed to add comment reaction');
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          return { success: false, error: 'Authentication required' };
+        }
+        return { success: false, error: 'Failed to add comment reaction' };
+      }
+      return { success: false, error: 'Network error' };
     }
   }
 

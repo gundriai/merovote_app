@@ -26,7 +26,7 @@ export default function LoginScreen() {
       setIsLoading(true);
       setAuthProvider('google');
       
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://txmr1pcp-3300.inc1.devtunnels.ms';
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://merovotebackend-app-hxb0g6deh8auc5gh.centralindia-01.azurewebsites.net';
       const authUrl = `${apiUrl}/auth/google`;
       
       // Open the OAuth URL in the device's browser
@@ -43,7 +43,7 @@ export default function LoginScreen() {
       setIsLoading(true);
       setAuthProvider('facebook');
       
-      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://txmr1pcp-3300.inc1.devtunnels.ms';
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://merovotebackend-app-hxb0g6deh8auc5gh.centralindia-01.azurewebsites.net';
       const authUrl = `${apiUrl}/auth/facebook`;
       
       // Open the OAuth URL in the device's browser
