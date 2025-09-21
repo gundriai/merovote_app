@@ -82,7 +82,7 @@ export default function CommentSection({ pollId, showWordLimit = false, onClose 
       showAlert('Success', 'Your comment has been posted!', 'success');
     },
     onError: (error) => {
-      console.error('Error adding comment:', error);
+      console.log('Error adding comment:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Failed to add comment';
       

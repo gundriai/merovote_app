@@ -57,7 +57,7 @@ class ApiService {
       await this.throwIfResNotOk(response);
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.log('API request failed:', error);
       throw error;
     }
   }
@@ -238,7 +238,7 @@ class ApiService {
         return { success: true };
       }
     } catch (error) {
-      console.error('Error adding comment:', error);
+      console.log('Error adding comment:', error);
       if (error instanceof ApiError) {
         if (error.status === 401) {
           return { success: false, error: 'Authentication required' };
@@ -274,7 +274,7 @@ class ApiService {
       });
       return { success: true };
     } catch (error) {
-      console.error('Error adding comment reaction:', error);
+      console.log('Error adding comment reaction:', error);
       if (error instanceof ApiError) {
         if (error.status === 401) {
           return { success: false, error: 'Authentication required' };
